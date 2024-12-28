@@ -1,0 +1,20 @@
+<template>
+    <lightning-card title="Invoice URL Parameters">
+        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+            <thead>
+                <tr>
+                    <th>URL Parameters</th>
+                    <th>URL Values</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template for:each={params} for:item="param">
+                    <tr key={param.name}>
+                        <td>{param.name}</td>
+                        <td>{param.value}</td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </lightning-card>
+</template>  
