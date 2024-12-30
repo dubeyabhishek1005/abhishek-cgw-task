@@ -10,31 +10,7 @@ public class InvoiceHandler {
             WHERE OpportunityId = :parentId
         ];
     }
-    /*
-    @AuraEnabled
-    public static String insertInvoice(List<OpportunityLineItem> lstOpportunityLineItem) {
-        if (lstOpportunityLineItem == null || lstOpportunityLineItem.isEmpty()) {
-            return 'No line items provided for invoice creation.';
-        }
-        system.debug('lstOpportunityLineItem'+lstOpportunityLineItem);
-        List<invoice__c> lstInvoices = new List<invoice__c>();
-        for (OpportunityLineItem lineItem : lstOpportunityLineItem) {
-            invoice__c objInvoice = new invoice__c(
-                Account__c = lineItem.Opportunity.accountId,
-                Due_Date__c = lineItem.Opportunity.Invoice_Due_Date__c,
-                Invoice_Date__c = lineItem.Opportunity.CloseDate,
-                Invoice_Reference__c = 'This Invoice is been generated from Opportunity.'
-            );
-            lstInvoices.add(objInvoice);
-        }
-
-        try {
-            insert lstInvoices;
-            return 'Invoices inserted successfully';
-        } catch (Exception ex) {
-            return 'Error while inserting invoices: ' + ex.getMessage();
-        }
-    }*/
+    
     @AuraEnabled
     public static String insertInvoice(Id parentId){
         List<Invoice_Line_Item__c> lstInvoiceLineItem = new List<Invoice_Line_Item__c>();
