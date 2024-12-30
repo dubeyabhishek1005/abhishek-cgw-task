@@ -28,7 +28,7 @@ export default class CreateInvoice extends LightningElement {
         fetchLineItems({ parentId: recordId })
             .then((data) => {
                 this.lineItems = data.map((item) => ({
-                    id: item.Id,
+                    id: recordId,
                     quantity: item.Quantity,
                     unitPrice: item.UnitPrice,
                     accountId: item.Opportunity.AccountId,
