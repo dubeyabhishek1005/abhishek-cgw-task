@@ -4,7 +4,7 @@ import insertInvoice from '@salesforce/apex/InvoiceHandler.insertInvoice';
 
 export default class CreateInvoice extends LightningElement {
     @track lineItems = [];
-
+    @track rcrdId = 0;
     connectedCallback() {
         this.getPageParameters();
     }
@@ -15,10 +15,12 @@ export default class CreateInvoice extends LightningElement {
 
         if (originRecord) {
             this.fetchLineItemData(originRecord);
+            this.insertInvoices(originRecord);
         }
     }
 
     fetchLineItemData(recordId) {
+        this.rcrdId = recordId;
         const futureDate = new Date();
         futureDate.setDate(new Date().getDate() + 30);
         const formattedFutureDate = futureDate.toISOString().split('T')[0];
@@ -37,7 +39,7 @@ export default class CreateInvoice extends LightningElement {
                 }));
 
                 this.updateURLParams();
-                this.insertInvoices();
+                //this.insertInvoices();
             })
             .catch((error) => {
                 console.error('Error fetching line items:', error);
@@ -64,11 +66,11 @@ export default class CreateInvoice extends LightningElement {
         console.log('Updated URL:', newUrl);
     }
 
-    insertInvoices() {
+    /*insertInvoices() {
         if (this.lineItems.length > 0) {
             insertInvoice({ lstOpportunityLineItem: this.lineItems })
                 .then((message) => {
-                    console.log('Insert Invoices Success:', message);
+                    console.log('Insert Invoices Success:', JSON.stringify(this.lineItems));
                 })
                 .catch((error) => {
                     console.error('Error inserting invoices:', error);
@@ -76,5 +78,15 @@ export default class CreateInvoice extends LightningElement {
         } else {
             console.warn('No line items available to create invoices.');
         }
+    }*/
+
+    insertInvoices(recordId) {
+        insertInvoice({ parentId: recordId })
+            .then((message) => {
+            console.log('Insert Invoices Success:', message);
+        })
+        .catch((error) => {
+            console.error('Error inserting invoices:', error);
+        });
     }
 }
