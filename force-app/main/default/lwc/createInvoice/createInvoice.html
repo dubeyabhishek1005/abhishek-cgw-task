@@ -3,30 +3,63 @@
         <table class="slds-table slds-table_cell-buffer slds-table_bordered">
             <thead>
                 <tr>
+                    <td>
+                        <table>
+                            <tr>
                     <th>URL Parameters</th>
                     <th>URL Values</th>
+                            </tr>
+                        </table>
+                    </td>
                 </tr>
             </thead>
             <tbody>
-                <template for:each={params} for:item="param">
-                    <tr key={param.name}>
-                        <td>{param.name}</td>
-                        <td>{param.value}</td>
+                <template for:each={lineItems} for:item="lineItems">
+                    <tr key={lineItems.Id}>
+                        <td>
+                        <table>
+                            <tr>
+                                <td>origin_record</td>
+                                <td>{lineItems.id}</td>
+                            </tr>
+                            <tr>
+                                <td>account 
+                                    </td>
+                                <td>{lineItems.accountId}</td>
+                            </tr>
+                            <tr>
+                                <td>invoice_date   
+                                    </td>
+                                <td>{lineItems.invoice_date}</td>
+                            </tr>
+                            <tr>
+                                <td>invoice_due_date  
+                                    </td>
+                                <td>{lineItems.invoice_due_date}</td>
+                            </tr>
+                            <tr>
+                                <td>child_relationship_name  
+                                    </td>
+                                <td>{lineItems.child_relationship_name}</td>
+                            </tr>
+                            <tr>
+                                <td>line_item_description   
+                                    </td>
+                                <td>{lineItems.line_item_description }</td>
+                            </tr>
+                            <tr>
+                                <td>line_item_quantity</td>
+                                <td>{lineItems.quantity}</td>
+                            </tr>
+                            <tr>
+                                <td>line_item_unit_price</td>
+                                <td>{lineItems.unitPrice}</td>
+                            </tr>
+                        </table>
+                    </td>
                     </tr>
+                    
                 </template>
-                <!-- <template for:each={lineItems} for:item="lineItems">
-                    <tr key={lineItems.id}>
-                        <td>{lineItems.id}</td>
-                        <td>{lineItems.description}</td>
-                        <td>{lineItems.quantity}</td>
-                        <td>{lineItems.unitPrice}</td>
-                        <td>{lineItems.childrelationshipname}</td>
-
-                        <td>{lineItems.account}</td>
-                        <td>{lineItems.invoicedate}</td>
-                        <td>{lineItems.invoiceduedate}</td>
-                    </tr>
-                </template> -->
             </tbody>
         </table>
     </lightning-card>

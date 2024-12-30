@@ -1,57 +1,80 @@
-import { LightningElement, track , wire} from 'lwc';
+import { LightningElement, track } from 'lwc';
 import fetchLineItems from '@salesforce/apex/InvoiceHandler.fetchLineItems';
-import { CurrentPageReference } from 'lightning/navigation';
+import insertInvoice from '@salesforce/apex/InvoiceHandler.insertInvoice';
+
 export default class CreateInvoice extends LightningElement {
-    @track params = [];
-    connectedCallback() {
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-        console.log('urlParams:'+urlParams);
-        this.params = [...urlParams.entries()].map(([key, value]) => ({ name: key, value }));
-    }
-    @track urlParams = {};
     @track lineItems = [];
 
-    // Retrieve parameters from the URL
-    @wire(CurrentPageReference)
-    getPageParameters(currentPage) {
-        if (currentPage && currentPage.state) {
-            this.urlParams = {
-                origin_record: currentPage.state.c__origin_record || '',
-                child_relationship_name: currentPage.state.c__child_relationship_name || '',
-                line_item_description: currentPage.state.c__line_item_description || '',
-                line_item_unit_price: currentPage.state.c__line_item_unit_price || '',
-                line_item_quantity: currentPage.state.c__line_item_quantity || ''
-            };
+    connectedCallback() {
+        this.getPageParameters();
+    }
 
-            console.log('URL Parameters:', this.urlParams.origin_record); // Add this line for debugging
+    getPageParameters() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const originRecord = urlParams.get('c__origin_record') || '';
 
-            // If we have the origin record ID, fetch line items
-            if (this.urlParams.origin_record) {
-                this.fetchLineItemData(this.urlParams.origin_record);
-            }
+        if (originRecord) {
+            this.fetchLineItemData(originRecord);
         }
     }
 
-    // Fetch line items based on the Opportunity ID
     fetchLineItemData(recordId) {
+        const futureDate = new Date();
+        futureDate.setDate(new Date().getDate() + 30);
+        const formattedFutureDate = futureDate.toISOString().split('T')[0];
+
         fetchLineItems({ parentId: recordId })
             .then((data) => {
                 this.lineItems = data.map((item) => ({
                     id: item.Id,
-                    description: item.Product2.Name,
                     quantity: item.Quantity,
-                    unitPrice: item.UnitPrice
+                    unitPrice: item.UnitPrice,
+                    accountId: item.Opportunity.AccountId,
+                    invoice_due_date: formattedFutureDate,
+                    child_relationship_name: 'OpportunityLineItem',
+                    line_item_description: item.Description,
+                    invoice_date: item.Opportunity.CloseDate
                 }));
-                
-                this.params = [
-                    ...this.params,  // Spread the previous params (if any)
-                    { name: 'Opportunity Line Items', value: JSON.stringify(lineItemData) }  // Add as stringified JSON
-                ];
-                console.log('Fetched Line Items:', JSON.stringify(this.lineItems)); // Add this line for debugging
+
+                this.updateURLParams();
+                this.insertInvoices();
             })
             .catch((error) => {
                 console.error('Error fetching line items:', error);
             });
+    }
+
+    updateURLParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        Array.from(urlParams.keys()).forEach((key) => {
+            if (key.startsWith('c__line_item_')) {
+                urlParams.delete(key);
+            }
+        });
+
+        this.lineItems.forEach((item, index) => {
+            urlParams.set(`c__line_item_description${index}`, item.line_item_description || '');
+            urlParams.set(`c__line_item_quantity${index}`, item.quantity);
+            urlParams.set(`c__line_item_unit_price${index}`, item.unitPrice);
+        });
+
+        const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+        window.history.replaceState({}, '', newUrl);
+        console.log('Updated URL:', newUrl);
+    }
+
+    insertInvoices() {
+        if (this.lineItems.length > 0) {
+            insertInvoice({ lstOpportunityLineItem: this.lineItems })
+                .then((message) => {
+                    console.log('Insert Invoices Success:', message);
+                })
+                .catch((error) => {
+                    console.error('Error inserting invoices:', error);
+                });
+        } else {
+            console.warn('No line items available to create invoices.');
+        }
     }
 }
