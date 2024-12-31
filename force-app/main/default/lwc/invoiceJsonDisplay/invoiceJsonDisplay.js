@@ -25,12 +25,14 @@ export default class InvoiceJsonDisplay extends NavigationMixin(LightningElement
         }));
 
         const invoiceData = {
-            type: 'ACCREC',
+            account_id: data.account, 
+            opportunityId: data.Id,
+            reference: data.referenced,
             contact_id: '0000000', 
             date: data.invoiceDate,
             due_date: data.dueDate,
+            total: lineItems.reduce((sum, item) => sum + item.amount, 0),
             line_items: lineItems,
-            total: lineItems.reduce((sum, item) => sum + item.amount, 0) 
         };
 
         return invoiceData;
