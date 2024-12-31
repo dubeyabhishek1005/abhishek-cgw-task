@@ -1,9 +1,9 @@
 public with sharing class InvoiceCreateController {
     
     @AuraEnabled(cacheable=true)
-    public static Map<String, Object> getOpportunityDetails(Id opportunityId) {
+    public static Map<String, Object> getOpportunityDetails(Id opportunityId, Map<String, String> queryFields) {
         Opportunity opp = [SELECT Id, AccountId, CloseDate, Invoice_Due_Date__c,
-                           (SELECT Id, Name, Quantity, UnitPrice FROM OpportunityLineItems)
+                           (SELECT Id, Name, Quantity, UnitPrice, Description FROM OpportunityLineItems)
                            FROM Opportunity WHERE Id = :opportunityId LIMIT 1];
         
         Map<String, Object> invoiceData = new Map<String, Object>();
@@ -11,7 +11,7 @@ public with sharing class InvoiceCreateController {
         invoiceData.put('account', opp.AccountId);
         invoiceData.put('invoiceDate', opp.CloseDate);
         invoiceData.put('dueDate', opp.Invoice_Due_Date__c); 
-        invoiceData.put('referenced', 'Invoice is been created from apex backend'); 
+        invoiceData.put('referenced', 'Invoice is being created from apex backend');
         
         List<Map<String, Object>> lineItems = new List<Map<String, Object>>();
         for (OpportunityLineItem oli : opp.OpportunityLineItems) {
@@ -19,6 +19,7 @@ public with sharing class InvoiceCreateController {
             lineItem.put('Name', oli.Name);
             lineItem.put('Quantity', oli.Quantity);
             lineItem.put('UnitPrice', oli.UnitPrice);
+            lineItem.put('Description', oli.Description);
             lineItems.add(lineItem);
         }
         invoiceData.put('lineItems', lineItems);
@@ -49,11 +50,15 @@ public with sharing class InvoiceCreateController {
 
             for (Object lineItemRaw : lineItems) {
                 Map<String, Object> lineItem = (Map<String, Object>) lineItemRaw;
-
+                String description = (String) lineItem.get('description');
+                Decimal quantity = (Decimal) lineItem.get('quantity');
+                Decimal unitPrice = (Decimal) lineItem.get('unit_price');
+                
+                // Dynamically using passed description field
                 Invoice_Line_Item__c lineItemRecord = new Invoice_Line_Item__c(
-                    Line_Description__c = (String) lineItem.get('description'),
-                    Quantity__c = (Decimal) lineItem.get('quantity'),
-                    Unit_Price__c = (Decimal) lineItem.get('unit_price')
+                    Line_Description__c = description,
+                    Quantity__c = quantity,
+                    Unit_Price__c = unitPrice
                 );
                 lineItemRecords.add(lineItemRecord);
             }
